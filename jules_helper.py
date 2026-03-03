@@ -170,14 +170,38 @@ class JulesHelper:
 
     def get_session_details(self, session_id: str) -> Optional[Dict]:
         """Fetch full details of a session including history."""
+        # Main session detail
         url = f"https://jules.googleapis.com/v1alpha/sessions/{session_id}"
-        req = urllib.request.Request(
-            url,
-            headers={"X-Goog-Api-Key": self.api_key}
-        )
+        req = urllib.request.Request(url, headers={"X-Goog-Api-Key": self.api_key})
         try:
             with urllib.request.urlopen(req, timeout=30) as response:
-                return json.loads(response.read().decode())
+                details = json.loads(response.read().decode())
+                
+                # If 'turns' is not in the main response, try the listTurns endpoint
+                if "turns" not in details:
+                    print(f"  [Turning debug] Fetching turns for {session_id}...")
+                    turns_url = f"https://jules.googleapis.com/v1alpha/sessions/{session_id}:listTurns"
+                    turns_req = urllib.request.Request(turns_url, headers={"X-Goog-Api-Key": self.api_key})
+                    try:
+                        with urllib.request.urlopen(turns_req, timeout=10) as turns_resp:
+                            turns_data = json.loads(turns_resp.read().decode())
+                            details["turns"] = turns_data.get("turns", [])
+                            print(f"  [Turning debug] Found {len(details['turns'])} turns via :listTurns")
+                    except Exception as te:
+                        print(f"  [Turning debug] :listTurns failed: {te}")
+                        # Fallback: maybe it's /turns?
+                        try:
+                            t_url = f"https://jules.googleapis.com/v1alpha/sessions/{session_id}/turns"
+                            t_req = urllib.request.Request(t_url, headers={"X-Goog-Api-Key": self.api_key})
+                            with urllib.request.urlopen(t_req, timeout=10) as t_resp:
+                                t_data = json.loads(t_resp.read().decode())
+                                details["turns"] = t_data.get("turns", [])
+                                print(f"  [Turning debug] Found {len(details['turns'])} turns via /turns")
+                        except Exception as te2:
+                            print(f"  [Turning debug] /turns failed: {te2}")
+                            details["turns"] = []
+                
+                return details
         except Exception as e:
             print(f"Error fetching session {session_id}: {e}")
             return None
