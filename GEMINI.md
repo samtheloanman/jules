@@ -29,3 +29,6 @@
 ### Rules
 1.  **Read the ARCHITECTURE:** `.agent/ARCHITECTURE.md` is the source of truth for capabilities.
 2.  **Follow Protocols:** Adhere to the protocols defined in `.agent/rules/GEMINI.md`.
+
+### Extensions
+*   **Jules:** Enabled for Python development.
