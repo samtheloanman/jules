@@ -82,6 +82,20 @@ class TaskDispatcher:
         })
         self._save_tasks(data)
     
+    def _get_git_root(self) -> Optional[Path]:
+        """Get the root of the git repository."""
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                capture_output=True,
+                text=True,
+                check=True,
+                cwd=self.root_dir
+            )
+            return Path(result.stdout.strip())
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return None
+
     def dispatch_to_jules(self, task_description: str, branch: str = "main", repo_name: str = None) -> Dict:
         """
         Dispatch a task to Jules via the Jules REST API.
@@ -125,7 +139,7 @@ class TaskDispatcher:
                 if jules_api_key: break
         
         if not jules_api_key:
-            return self._queue_jules_task(task_id, task_description, "Missing JULES_API_KEY")
+            return self._dispatch_jules_cli(task_id, task_description, target_repo)
         
         self._update_heartbeat("Jules", "dispatching")
         
@@ -217,7 +231,70 @@ class TaskDispatcher:
         except Exception as e:
             return self._queue_jules_task(task_id, task_description, f"Session create error: {e}")
     
+    def _dispatch_jules_cli(self, task_id: str, task_description: str, repo_name: str) -> Dict:
+        """Fallback to Jules CLI when API key is not available."""
+        git_root = self._get_git_root()
+        if not git_root:
+            return {
+                "success": False,
+                "task_id": task_id,
+                "message": "Could not find git repository root."
+            }
+
+        script_path = git_root / "jules-dispatch-fix.sh"
+        if not script_path.exists():
+            return {
+                "success": False,
+                "task_id": task_id,
+                "message": f"jules-dispatch-fix.sh not found at {script_path}"
+            }
+
+        try:
+            cmd = [str(script_path), task_description]
+            
+            self._update_heartbeat("Jules", "dispatching")
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=120,
+                cwd=git_root
+            )
+            
+            if result.returncode == 0:
+                self._add_task_record(task_id, "Jules", task_description, "dispatched", result.stdout)
+                self._update_heartbeat("Jules", "active")
+                return {
+                    "success": True,
+                    "task_id": task_id,
+                    "message": "Task dispatched to Jules CLI",
+                    "output": result.stdout
+                }
+            else:
+                self._add_task_record(task_id, "Jules", task_description, "failed", result.stderr)
+                return {
+                    "success": False,
+                    "task_id": task_id,
+                    "message": "Jules CLI dispatch failed",
+                    "error": result.stderr
+                }
+                
+        except FileNotFoundError:
+            return {
+                "success": False,
+                "task_id": task_id,
+                "message": "jules-dispatch-fix.sh not found. Make sure it is in the git root."
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "task_id": task_id,
+                "message": f"Error dispatching to Jules CLI: {str(e)}"
+            }
+    
     def _queue_jules_task(self, task_id: str, task_description: str, reason: str = None) -> Dict:
+
         """Queue a Jules task for manual execution when API is unavailable."""
         self._add_task_record(task_id, "Jules", task_description, "queued")
         self._update_heartbeat("Jules", "has_pending")
