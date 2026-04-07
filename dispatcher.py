@@ -196,10 +196,22 @@ class TaskDispatcher:
                  return self._queue_jules_task(task_id, task_description, f"Repo {target_repo} not found in sources.")
 
         # 3. Create Session
-        rules_file = self.root_dir / ".agent/rules/JULES_AGENT_RULES.md"
+        git_root = self._get_git_root()
+        if not git_root:
+            return {
+                "success": False,
+                "task_id": task_id,
+                "message": "Could not find git repository root."
+            }
+        rules_file = git_root / ".agent/rules/JULES_AGENT_RULES.md"
         rules_content = ""
         if rules_file.exists():
             rules_content = rules_file.read_text()
+        else:
+            # Fallback to local rules file
+            rules_file = self.root_dir / ".agent/rules/JULES_AGENT_RULES.md"
+            if rules_file.exists():
+                rules_content = rules_file.read_text()
 
         full_prompt = f"{rules_content}\n\n[Repository: {target_repo}]\n\n{task_description}"
 
