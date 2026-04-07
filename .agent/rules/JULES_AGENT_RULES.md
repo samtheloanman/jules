@@ -2,7 +2,7 @@
 trigger: always_on
 ---
 
-# GEMINI.md - Maestro Configuration
+# JULES_AGENT_RULES.md - Maestro Configuration
 
 > Maestro AI Development Orchestrator
 > This file defines how the AI behaves in this workspace.
