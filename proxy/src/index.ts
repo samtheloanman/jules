@@ -90,6 +90,26 @@ export default {
         return new Response('No Jules label or mention detected', { status: 200 });
       }
 
+      // -- NEW: Slash Command Interface --
+      const COMMANDS: Record<string, string> = {
+        '/ship': "Execute the `gsd-ship` workflow: verify all tests pass, ensure documentation is updated, and merge this branch into production.",
+        '/review': "Perform a high-precision code review focusing on ARCHITECTURE, performance bottlenecks, and security vulnerabilities.",
+        '/doc': "Generate or update all relevant documentation including MD files and inline code comments for this implementation.",
+        '/test': "Generate a comprehensive test suite (unit/integration) for this context using the repository's established testing patterns.",
+        '/fix': "Analyze the reported issue and provide a verified code fix. Run tests to ensure no regressions."
+      };
+
+      let specializedPrompt: string | null = null;
+      if (event === 'issue_comment' && payload.comment?.body) {
+        const body = payload.comment.body;
+        for (const [cmd, instruction] of Object.entries(COMMANDS)) {
+          if (body.includes(cmd)) {
+            specializedPrompt = instruction;
+            break;
+          }
+        }
+      }
+
       if (sha) {
         // 1. Check existing commit status
         const statusCheckRes = await fetch(`https://api.github.com/repos/${repoName}/statuses/${sha}`, {
@@ -121,20 +141,23 @@ export default {
         });
       }
 
-      let prompt = "Please review this code for clean code, security issues, or answer questions.";
-      if (labels.includes('jules:test')) {
-         prompt = "Please read this context and generate comprehensive unit tests to cover the code. Do not push until tests pass.";
-      } else if (labels.includes('jules:doc')) {
-         prompt = "Please read this context and generate comprehensive documentation (markdown and code comments) for the code.";
-      } else if (event === 'issue_comment' && payload.comment?.body) {
-         prompt = `User commented: ${payload.comment.body}\nPlease address this request.`;
+      let prompt = specializedPrompt || "Please review this code for clean code, security issues, or answer questions.";
+      if (!specializedPrompt) {
+        if (labels.includes('jules:test')) {
+           prompt = "Please read this context and generate comprehensive unit tests to cover the code. Do not push until tests pass.";
+        } else if (labels.includes('jules:doc')) {
+           prompt = "Please read this context and generate comprehensive documentation (markdown and code comments) for the code.";
+        } else if (event === 'issue_comment' && payload.comment?.body) {
+           prompt = `User commented: ${payload.comment.body}\nPlease address this request.`;
+        }
       }
 
       // 3. Trigger Jules Session
       ctx.waitUntil(triggerJulesAPI(env.JULES_API_KEY, repoUrl, number, prompt));
 
       // 4. Send Notification
-      ctx.waitUntil(sendNotification(env, `Jules is processing ${type} #${number} on ${repoName}`));
+      const notificationPrefix = specializedPrompt ? `[COMMAND DETECTED]` : `[AUTO-TRIGGER]`;
+      ctx.waitUntil(sendNotification(env, `${notificationPrefix} Jules is processing ${type} #${number} on ${repoName}`));
 
       return new Response('Jules Triggered', { status: 202 });
     } catch (e: any) {

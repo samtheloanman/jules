@@ -31,3 +31,11 @@
 - [x] Update `overseer.py` to auto-approve tasks via a background scheduling script (`auto_dispatch.py`) acting as the `gsd-autonomous` pulse.
 - [x] Align `GitHubDispatcher` labels and body tags (`@jules`, `jules:task`) to guarantee Webhook triggers to the Jules Edge worker.
 - [x] Establish the recursive loop: once Jules completes an issue, the next `overseer` pulse realizes it's done based on repository changes!
+
+## Phase 4.0: Slash Command Interface (Explicit Orchestration)
+**Goal**: Implement a robust command parsing layer in the proxy to enable explicit task assignment via GitHub comments.
+**Status**: Completed
+
+- [x] Implement `/ship`, `/review`, `/doc`, `/test`, and `/fix` command detection in `proxy/src/index.ts`.
+- [x] Configure specialized AI instruction sets for each command.
+- [x] Update `docs/CONFIGURATION.md` with the new command dictionary.

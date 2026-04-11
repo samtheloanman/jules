@@ -17,3 +17,14 @@ Should you need to expand what types of file trigger specific prompts in Jules, 
 - `jules:test` triggers aggressive TDD generation for `.ts` and `.py` files.
 - `jules:doc` triggers documentation review on `.md` file changes.
 - Generic `jules:review` implies clean-code checking on all PR diffs.
+
+## Slash Command Interface
+You can trigger specialized Jules workflows by mentioning `@jules` followed by a command in any GitHub comment:
+
+| Command | Action | Description |
+|---------|--------|-------------|
+| `/ship` | **Ship Work** | Triggers verification, PR creation, and automated merging. |
+| `/review`| **Code Review**| Triggers a high-precision architectural and security audit. |
+| `/doc` | **Documentation**| Triggers generation/update of READMEs, ARCHITECTURE.md, and MD docs. |
+| `/test` | **Test Suite** | Triggers generation of a complete unit test suite for the context. |
+| `/fix` | **Auto-Fix** | Triggers analysis and verified code fixing for a reported bug. |
