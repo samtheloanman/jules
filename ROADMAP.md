@@ -23,3 +23,11 @@
 - [x] Add event listeners for Issues, PR Merges, and Discussions in `proxy/src/index.ts`.
 - [x] Implement outbound Webhook dispatch for Discord/Slack notifications.
 - [x] Configure `wrangler` secrets and deploy the worker to production.
+
+## Phase 3.0: Autonomous Multi-Agent Dispatch (GSD-Autonomous)
+**Goal**: Completely automate task discovery and assignment out of `overseer.py` into GitHub Issues, allowing Jules, Claude, and Antigravity to recursively pick up, execute, and sync tasks back in a hands-free orchestration loop.
+**Status**: Completed
+
+- [x] Update `overseer.py` to auto-approve tasks via a background scheduling script (`auto_dispatch.py`) acting as the `gsd-autonomous` pulse.
+- [x] Align `GitHubDispatcher` labels and body tags (`@jules`, `jules:task`) to guarantee Webhook triggers to the Jules Edge worker.
+- [x] Establish the recursive loop: once Jules completes an issue, the next `overseer` pulse realizes it's done based on repository changes!
