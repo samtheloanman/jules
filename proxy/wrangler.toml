@@ -12,4 +12,5 @@ enabled = true
 # 
 # OPTIONAL:
 # wrangler secret put DISCORD_WEBHOOK_URL
-# wrangler secret put SLACK_WEBHOOK_URL
+# wrangler secret put TELEGRAM_BOT_TOKEN
+# wrangler secret put TELEGRAM_CHAT_ID

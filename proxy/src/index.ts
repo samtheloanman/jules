@@ -4,6 +4,8 @@ interface Env {
   GITHUB_WEBHOOK_SECRET: string;
   DISCORD_WEBHOOK_URL?: string;
   SLACK_WEBHOOK_URL?: string;
+  TELEGRAM_BOT_TOKEN?: string;
+  TELEGRAM_CHAT_ID?: string;
 }
 
 async function verifySignature(secret: string, header: string, payload: string): Promise<boolean> {
@@ -80,10 +82,12 @@ export default {
         labels = payload.issue.labels.map((l: any) => l.name);
       }
 
-      // Check for Jules labels
+      // Check for Jules labels or explicit mentions
       const hasJulesLabel = labels.some((l: string) => l.startsWith('jules:'));
-      if (!hasJulesLabel) {
-        return new Response('No Jules label detected', { status: 200 });
+      const hasJulesMention = event === 'issue_comment' && (payload.comment?.body?.includes('@jules') || payload.comment?.body?.includes('/gsd'));
+      
+      if (!hasJulesLabel && !hasJulesMention) {
+        return new Response('No Jules label or mention detected', { status: 200 });
       }
 
       if (sha) {
@@ -169,6 +173,16 @@ async function sendNotification(env: Env, message: string) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: message })
+    }));
+  }
+  if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+    promises.push(fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        chat_id: env.TELEGRAM_CHAT_ID,
+        text: message
+      })
     }));
   }
   await Promise.allSettled(promises);
