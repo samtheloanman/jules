@@ -1,0 +1,11 @@
+name = "jules-webhook-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-04-10"
+
+[observability]
+enabled = true
+
+[vars]
+# GITHUB_TOKEN and JULES_API_KEY will be set via Cloudflare Secrets:
+# wrangler secret put GITHUB_TOKEN
+# wrangler secret put JULES_API_KEY

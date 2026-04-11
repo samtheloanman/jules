@@ -1,0 +1,8 @@
+"jules:test":
+  - any:
+      - '**/*.ts'
+      - '**/*.py'
+"jules:doc":
+  - any:
+      - '**/*.md'
+      - 'docs/**/*'

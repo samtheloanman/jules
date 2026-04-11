@@ -3,3 +3,4 @@
 __pycache__/
 .conductor-state/
 python_venv_link
+.dev.vars
