@@ -10,8 +10,8 @@
 
 ## Phase 1.1: Close Milestone 1.0 Documentation Gaps
 **Goal**: Retroactively generate missing canonical plans, summaries, and verifications mandated by the GSD workflow.
-**Status**: Pending
+**Status**: Completed
 
-- [ ] Create `REQUIREMENTS.md`
-- [ ] Create Phase 1.0 `VERIFICATION.md`
-- [ ] Create Phase 1.0 `SUMMARY.md`
+- [x] Create `REQUIREMENTS.md`
+- [x] Create Phase 1.0 `VERIFICATION.md`
+- [x] Create Phase 1.0 `SUMMARY.md`
