@@ -15,3 +15,11 @@
 - [x] Create `REQUIREMENTS.md`
 - [x] Create Phase 1.0 `VERIFICATION.md`
 - [x] Create Phase 1.0 `SUMMARY.md`
+
+## Phase 2.0: Zapier Workflow Replacement Expansion (Triggers & Notifications)
+**Goal**: Expand the native Cloudflare Worker proxy to handle a variety of GitHub events, dispatch notifications to external channels like Discord/Slack, and deploy to production.
+**Status**: Completed
+
+- [x] Add event listeners for Issues, PR Merges, and Discussions in `proxy/src/index.ts`.
+- [x] Implement outbound Webhook dispatch for Discord/Slack notifications.
+- [x] Configure `wrangler` secrets and deploy the worker to production.

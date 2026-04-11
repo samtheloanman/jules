@@ -9,3 +9,7 @@ enabled = true
 # GITHUB_TOKEN and JULES_API_KEY will be set via Cloudflare Secrets:
 # wrangler secret put GITHUB_TOKEN
 # wrangler secret put JULES_API_KEY
+# 
+# OPTIONAL:
+# wrangler secret put DISCORD_WEBHOOK_URL
+# wrangler secret put SLACK_WEBHOOK_URL
