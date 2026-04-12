@@ -39,3 +39,10 @@
 - [x] Implement `/ship`, `/review`, `/doc`, `/test`, and `/fix` command detection in `proxy/src/index.ts`.
 - [x] Configure specialized AI instruction sets for each command.
 - [x] Update `docs/CONFIGURATION.md` with the new command dictionary.
+
+## Phase 4.1: Security Authorization Guards (Red Team Patch)
+**Goal**: Enforce strict authorization validation on the webhook proxy to prevent unauthenticated users from executing critical autonomous slash commands.
+**Status**: Completed
+
+- [x] Implement author association checking in `proxy/src/index.ts` to block unauthorized commands via `403 Forbidden`.
+- [x] Push security patch to Cloudflare Edge.

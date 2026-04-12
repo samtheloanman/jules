@@ -110,6 +110,20 @@ export default {
         }
       }
 
+      // -- NEW: Security Authorization Guard --
+      const authorAssoc = payload.comment?.author_association || payload.issue?.author_association;
+      const authorLogin = payload.comment?.user?.login || payload.issue?.user?.login;
+
+      const isAuthorized = ['OWNER', 'COLLABORATOR', 'MEMBER'].includes(authorAssoc) || authorLogin === 'samtheloanman';
+
+      if (specializedPrompt && !isAuthorized) {
+        return new Response('Unauthorized user attempted slash command', { status: 403 });
+      }
+
+      if (hasJulesMention && !isAuthorized) {
+        return new Response('Unauthorized user attempted to trigger Jules', { status: 403 });
+      }
+
       if (sha) {
         // 1. Check existing commit status
         const statusCheckRes = await fetch(`https://api.github.com/repos/${repoName}/statuses/${sha}`, {
