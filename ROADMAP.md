@@ -1,48 +1,26 @@
 # Roadmap
 
-## Phase 1.0: Jules Automation Integration
-**Goal**: Wire up the Jules API for autonomous PR processing and configure its internal scheduled tasks for recurring codebase sweeps.
+**Milestone 1.0 (Automation & Webhooks) has been archived.** All completed phases (1.0 - 4.1) can be found in `.planning/milestones/v1.0/`.
+
+---
+
+## Milestone 2.0: The Swarm Orchestrator
+**Goal**: Elevate Jules from a solo-reviewer to a management proxy that can assign GitHub issues directly to Local Agents (e.g., `frontend-specialist`) via webhook label logic.
+**Status**: Active
+
+## Phase 2.1: Overseer Label Dispatch (Proxy Extension)
+**Goal**: Allow Jules to parse `@jules /delegate [agent]` and automatically apply repository labels (e.g., `agent:frontend-specialist`) that the local `overseer.py` daemon can pick up during its next pulse.
 **Status**: Completed
 
-- [x] Update `AGENTS.md` to define test/debug/validate workflows natively for Jules.
-- [x] Configure GitHub webhooks to trigger Jules API on PR creation.
-- [x] Setup scheduled auditing tasks within Jules UI.
+- [x] Add `/delegate [agent]` command parser to `proxy/src/index.ts`.
+- [x] Implement GitHub API call to apply labels dynamically to the issue/PR.
+- [x] Deploy Edge Proxy.
 
-## Phase 1.1: Close Milestone 1.0 Documentation Gaps
-**Goal**: Retroactively generate missing canonical plans, summaries, and verifications mandated by the GSD workflow.
+## Phase 2.2: Autonomous CI/CD Pipeline & Review Bot
+**Goal**: Implicitly intercept generic `pull_request` webhooks regardless of labels/mentions, acting as a background CI/CD agent that automatically reviews, tests, and merges incoming GSD pipeline code without explicit invocation.
 **Status**: Completed
 
-- [x] Create `REQUIREMENTS.md`
-- [x] Create Phase 1.0 `VERIFICATION.md`
-- [x] Create Phase 1.0 `SUMMARY.md`
-
-## Phase 2.0: Zapier Workflow Replacement Expansion (Triggers & Notifications)
-**Goal**: Expand the native Cloudflare Worker proxy to handle a variety of GitHub events, dispatch notifications to external channels like Discord/Slack, and deploy to production.
-**Status**: Completed
-
-- [x] Add event listeners for Issues, PR Merges, and Discussions in `proxy/src/index.ts`.
-- [x] Implement outbound Webhook dispatch for Discord/Slack notifications.
-- [x] Configure `wrangler` secrets and deploy the worker to production.
-
-## Phase 3.0: Autonomous Multi-Agent Dispatch (GSD-Autonomous)
-**Goal**: Completely automate task discovery and assignment out of `overseer.py` into GitHub Issues, allowing Jules, Claude, and Antigravity to recursively pick up, execute, and sync tasks back in a hands-free orchestration loop.
-**Status**: Completed
-
-- [x] Update `overseer.py` to auto-approve tasks via a background scheduling script (`auto_dispatch.py`) acting as the `gsd-autonomous` pulse.
-- [x] Align `GitHubDispatcher` labels and body tags (`@jules`, `jules:task`) to guarantee Webhook triggers to the Jules Edge worker.
-- [x] Establish the recursive loop: once Jules completes an issue, the next `overseer` pulse realizes it's done based on repository changes!
-
-## Phase 4.0: Slash Command Interface (Explicit Orchestration)
-**Goal**: Implement a robust command parsing layer in the proxy to enable explicit task assignment via GitHub comments.
-**Status**: Completed
-
-- [x] Implement `/ship`, `/review`, `/doc`, `/test`, and `/fix` command detection in `proxy/src/index.ts`.
-- [x] Configure specialized AI instruction sets for each command.
-- [x] Update `docs/CONFIGURATION.md` with the new command dictionary.
-
-## Phase 4.1: Security Authorization Guards (Red Team Patch)
-**Goal**: Enforce strict authorization validation on the webhook proxy to prevent unauthenticated users from executing critical autonomous slash commands.
-**Status**: Completed
-
-- [x] Implement author association checking in `proxy/src/index.ts` to block unauthorized commands via `403 Forbidden`.
-- [x] Push security patch to Cloudflare Edge.
+- [x] Modify proxy trigger guards to allow `event === 'pull_request'` explicitly.
+- [x] Implement `payload.sender` bot-guard loop prevention.
+- [x] Inject CI/CD specific LLM context prompt into the API payload.
+- [x] Deploy Edge Proxy.

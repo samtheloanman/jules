@@ -28,3 +28,4 @@ You can trigger specialized Jules workflows by mentioning `@jules` followed by a
 | `/doc` | **Documentation**| Triggers generation/update of READMEs, ARCHITECTURE.md, and MD docs. |
 | `/test` | **Test Suite** | Triggers generation of a complete unit test suite for the context. |
 | `/fix` | **Auto-Fix** | Triggers analysis and verified code fixing for a reported bug. |
+| `/delegate` | **Agent Delegation** | Bypasses Jules API and assigns the issue specifically to a Swarm Agent (e.g. `/delegate frontend-specialist`). |

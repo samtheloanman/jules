@@ -82,12 +82,22 @@ export default {
         labels = payload.issue.labels.map((l: any) => l.name);
       }
 
+      // -- NEW: Autonomous CI/CD Event Triggers --
+      const isPR = event === 'pull_request';
+
       // Check for Jules labels or explicit mentions
       const hasJulesLabel = labels.some((l: string) => l.startsWith('jules:'));
       const hasJulesMention = event === 'issue_comment' && (payload.comment?.body?.includes('@jules') || payload.comment?.body?.includes('/gsd'));
       
-      if (!hasJulesLabel && !hasJulesMention) {
-        return new Response('No Jules label or mention detected', { status: 200 });
+      // Stop execution if no indicators apply
+      if (!hasJulesLabel && !hasJulesMention && !isPR) {
+        return new Response('No Jules label, mention, or PR detected', { status: 200 });
+      }
+
+      // -- NEW: Anti-Loop Guard --
+      const senderLogin = payload.sender?.login || '';
+      if (senderLogin.includes('bot') || senderLogin.includes('[bot]') || senderLogin === 'jules-ai') {
+        return new Response('Ignoring automated triggers', { status: 200 });
       }
 
       // -- NEW: Slash Command Interface --
@@ -115,6 +125,30 @@ export default {
       const authorLogin = payload.comment?.user?.login || payload.issue?.user?.login;
 
       const isAuthorized = ['OWNER', 'COLLABORATOR', 'MEMBER'].includes(authorAssoc) || authorLogin === 'samtheloanman';
+
+      // -- NEW: Delegation Command --
+      const delegateMatch = payload.comment?.body?.match(/\/delegate\s+([\w-]+)/);
+      if (delegateMatch && isAuthorized) {
+        const agentName = delegateMatch[1];
+        const issueUrl = payload.issue ? payload.issue.url : payload.pull_request?.issue_url;
+        
+        if (issueUrl) {
+          await fetch(`${issueUrl}/labels`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `token ${env.GITHUB_TOKEN}`,
+              'User-Agent': 'Cloudflare-Worker',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              labels: [`agent:${agentName}`]
+            })
+          });
+        }
+
+        ctx.waitUntil(sendNotification(env, `[DELEGATION] Jules delegated ${type} #${number} on ${repoName} to \`agent:${agentName}\``));
+        return new Response(`Delegated to agent:${agentName}`, { status: 202 });
+      }
 
       if (specializedPrompt && !isAuthorized) {
         return new Response('Unauthorized user attempted slash command', { status: 403 });
@@ -157,7 +191,9 @@ export default {
 
       let prompt = specializedPrompt || "Please review this code for clean code, security issues, or answer questions.";
       if (!specializedPrompt) {
-        if (labels.includes('jules:test')) {
+        if (isPR) {
+           prompt = "You are the Autonomous CI/CD Reviewer. A new Pull Request update was pushed. Please perform a high-precision code review focusing on ARCHITECTURE, clean code principles, and security. Then, run the repository's test suite via bash. If all tests pass and no critical issues exist, automatically merge this PR into the base branch. If issues are found, comment your feedback and DO NOT merge.";
+        } else if (labels.includes('jules:test')) {
            prompt = "Please read this context and generate comprehensive unit tests to cover the code. Do not push until tests pass.";
         } else if (labels.includes('jules:doc')) {
            prompt = "Please read this context and generate comprehensive documentation (markdown and code comments) for the code.";
